@@ -10,3 +10,11 @@ Piano di riferimento: `input/ideas/ricostruzione-tc-da-radiografie-2d-plan.md` (
 | 2026-11-05 | Checkpoint scelto sull'errore di volume L1 del validation set, per A e C | Criterio identico per entrambi, indipendente da lambda | Nessuno sul confronto; registrato per trasparenza |
 
 Lo split del pilota (`split_pilot40.json`) non è congelato: va rigenerato se il campione cambia.
+
+## Risultato provvisorio del pilota (40 pazienti, 30 epoche, test 6 pazienti)
+
+- Differenza A − C, MAE in HU, bootstrap 95% per paziente:
+  - polmone: +26,8 [−26,4; +66,9]: inconcludente;
+  - tessuto molle (mediastino): −103,6 [−117,5; −89,3]: A migliore di C.
+- Ipotesi pre-registrata non supportata in questo pilota. Riportata senza modifiche.
+- Decisione: aumentare il campione (pazienti da 0041 in poi) prima di qualsiasi conclusione.
