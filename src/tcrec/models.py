@@ -33,6 +33,10 @@ class UNet3D(nn.Module):
         self.up1 = nn.ConvTranspose3d(base * 2, base, 2, stride=2)
         self.dec1 = _block(base * 2, base)
         self.head = nn.Conv3d(base, 1, 1)
+        # Inizializzazione: uscita iniziale vicina a mu dell'acqua (~0.02 mm^-1), non a ~0.7.
+        # softplus(b) = 0.02  =>  b = log(exp(0.02) - 1)
+        nn.init.zeros_(self.head.weight)
+        nn.init.constant_(self.head.bias, float(torch.log(torch.expm1(torch.tensor(0.02)))))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         e1 = self.enc1(x)
