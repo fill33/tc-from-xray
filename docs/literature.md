@@ -27,12 +27,14 @@ Letto: pp. 1–8, con tabelle e figure.
 - Limiti dichiarati dagli autori: nessun modello a diffusione per ragioni di memoria; LPIPS calcolato su immagini naturali.
 
 ### 3. XTransCT — Zhang et al., arXiv:2305.19621 (2023)
-Letto: pp. 1–6 (introduzione, metodo, geometria di proiezione). Non letti: pagine 7 e seguenti, quindi la loss non è ancora verificata.
+Letto: pp. 1–12, fino alla sezione risultati e alla figura di generalizzazione. Le pagine successive non sono state lette.
 
-- Due radiografie a 45° e 135°. Dati: 50 pazienti di un ospedale, LIDC-IDRI, LNDb per la generalizzazione.
-- Architettura: backbone 2D che produce feature 8×16×512, poi un transformer che, per ogni coordinata voxel normalizzata (x, y, z), restituisce il valore grigio. Nessuna convoluzione 3D.
-- Tempo di ricostruzione dichiarato: 44 ms per volume, circa il 300% più veloce delle CNN 3D secondo gli autori.
-- Le DRR sono descritte come raggi conici con attenuazione accumulata e interpolazione ai piani CT: stesso principio della nostra proiezione.
+- Due radiografie a 45° e 135°, DRR di 128×128 pixel. Architettura: ResNet-50 come backbone, transformer con 6 livelli, query sulle coordinate voxel normalizzate (x, y, z) e MLP che restituisce il grigio. Nessuna convoluzione 3D.
+- Loss: solo L2 di ricostruzione tra il volume predetto e quello reale (eq. 2). Non c'è alcuna loss di riproiezione: il vincolo sulle radiografie non è presente.
+- Dati: 50 pazienti di radioterapia (chirurgia conservativa del seno, scanner Siemens, 0,977 × 0,977 × 5 mm); LIDC-IDRI con 917 TC di training e 101 di validazione; LNDb con 24 TC usate solo per il test di generalizzazione.
+- Risultati su LIDC-IDRI (tab. 1): SSIM 0,52, PSNR 19,72 dB, Dice polmone 0,95, 44 ms per volume. X2CT-GAN nella stessa tabella: SSIM 0,43, PSNR 17,56 dB, Dice 0,92, 163 ms.
+- Training: backbone a lr 1e-5 poi 1e-6, transformer a lr 1e-5; batch 1; GPU RTX A6000 48 GB.
+- Il dataset da 50 pazienti di radioterapia è interessante per il nostro contesto clinico: va verificato se i dati sono pubblici.
 
 ### 4. X-Recon — Wang et al., arXiv:2407.15356 (2024)
 Letto: pp. 1–6. Dataset privato, non LIDC-IDRI.
@@ -60,21 +62,24 @@ DOI 10.1038/s41598-025-02133-5. Letto: pp. 1–6 (metodo fino all'eq. 21). Licen
 - Rilevante per il vincolo fisico: il modulo PIC applica una correzione di consistenza dei dati (un passo di tipo Landweber, x̂ − Aᵀ(Ax̂ − s)) e la rete che segue viene addestrata con loss sul volume reale.
 - Differenza dal nostro modello C: DPMA inserisce la consistenza nell'architettura, con un passo esplicito che usa l'operatore di proiezione; C la impone con una loss di riproiezione durante il training.
 
-## Lavori non letti
+## Lavori trovati nella ricerca (non letti)
 
-- **XTransCT**: pagine 7 e seguenti. Da leggere per la loss e la valutazione.
-- **SA-LDM**: nessun PDF caricato. Modello a diffusione latente per radiografie biplanari; anno e sede da confermare.
+- **SA-LDM** — Bian et al., IEEE TCSVT, DOI 10.1109/TCSVT.2026.3709462, in stampa nel 2026. Diffusione latente con attributi spaziali; dati su polmone, bacino e ginocchio. Confermato come riferimento; il testo non è stato letto.
+- **DiffuX2CT** — Liu et al., ECCV 2024, DOI 10.1007/978-3-031-72775-7_26. Diffusione condizionata da due radiografie con un generatore tri-plane. Introduce il dataset LumbarV con 268 TC lombari, lo stesso numero del dataset di CVAA-GAN: da verificare se è lo stesso insieme di dati.
+- **Qiao et al., arXiv:2408.09731** — "Reconstruct Spine CT from Biplanar X-Rays via Diffusion Learning". Diffusione condizionata con una projection loss per la coerenza strutturale in 3D; stesso gruppo di CVAA-GAN. Da leggere per confrontare la sua projection loss con la nostra.
+- **EA-LDM** — modello di diffusione latente per TC da radiografie biplanari, con allineamento esplicito allo spazio latente di una TC 3D e adattamento al paziente con la TC di pianificazione. Dati: 92 pazienti clinici e 3.346 pazienti di RADCURE. Fonte: post di un autore su LinkedIn, da verificare sul paper (MICCAI 2026). Rilevante per la radioterapia.
 
 ## Implicazioni per il report
 
-- Nei lavori letti, la projection loss confronta le proiezioni del volume predetto con quelle del volume reale. Nessuno, tra quelli letti, confronta il volume predetto con le radiografie di ingresso con geometria a fascio conico. Questa differenza è il punto di posizionamento del nostro modello C, ma va confermata su XTransCT e SA-LDM prima di scriverla nel report.
+- Nei lavori letti, la projection loss confronta le proiezioni del volume predetto con quelle del volume reale. XTransCT non ne usa affatto. Nessuno, tra quelli letti, confronta il volume predetto con le radiografie di ingresso con geometria a fascio conico. Questa differenza è il punto di posizionamento del nostro modello C, ma va confermata su SA-LDM e su Qiao et al. 2408.09731 prima di scriverla nel report.
 - I numeri non sono confrontabili tra lavori: cambiano dataset, risoluzione (1 mm, 2 mm, 1,6 mm, 6 mm del nostro pilota), metriche e riproduzioni di baseline.
 - Il nostro contributo da dichiarare è la valutazione per regione anatomica con intervallo di confidenza per paziente e la misura della coerenza di riproiezione, non un nuovo modello.
 - Limite da dichiarare: 64³ a 6 mm, contro 128³ a 1 mm nei lavori su LIDC-IDRI.
 
 ## Da fare
 
-- Leggere le pagine restanti di XTransCT (loss e valutazione).
-- Confermare anno e sede di SA-LDM, con il PDF o la pagina dell'autore.
+- Procurarsi i PDF di SA-LDM, DiffuX2CT e arXiv:2408.09731 e leggerli per la loss di riproiezione.
+- Verificare EA-LDM sul paper, non sul post.
+- Verificare se il dataset LumbarV coincide con quello di CVAA-GAN.
 - Cercare studi di radioterapia che usano ricostruzione da radiografie, per il contesto clinico.
 - Verificare la licenza di LIDC-IDRI (task 1.1, a carico dell'utente).
